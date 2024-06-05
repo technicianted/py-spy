@@ -328,6 +328,19 @@ impl Config {
                 .help("Format output as JSON"))
             .arg(subprocesses.clone());
 
+        let proc_pid = pid.clone().required(true);
+        let proc = Command::new("proc")
+            .about("Dumps stack traces for a target non-python program to stdout")
+            .arg(full_filenames.clone())
+            .arg(proc_pid)
+            .arg(
+                Arg::new("json")
+                    .short('j')
+                    .long("json")
+                    .help("Format output as JSON"),
+            )
+            .arg(subprocesses.clone());
+
         let completions = Command::new("completions")
             .about("Generate shell completions")
             .hide(true)
@@ -344,6 +357,8 @@ impl Config {
         let top = top.arg(native.clone());
         #[cfg(unwind)]
         let dump = dump.arg(native.clone());
+        #[cfg(unwind)]
+        let proc = proc.arg(native.clone());
 
         #[cfg(unwind)]
         let record = record.arg(native_all.clone());
@@ -351,6 +366,8 @@ impl Config {
         let top = top.arg(native_all.clone());
         #[cfg(unwind)]
         let dump = dump.arg(native_all.clone());
+        #[cfg(unwind)]
+        let proc = proc.arg(native_all.clone());
 
         // Nonblocking isn't an option for freebsd, remove
         #[cfg(not(target_os = "freebsd"))]
@@ -359,6 +376,8 @@ impl Config {
         let top = top.arg(nonblocking.clone());
         #[cfg(not(target_os = "freebsd"))]
         let dump = dump.arg(nonblocking.clone());
+        #[cfg(not(target_os = "freebsd"))]
+        let proc = proc.arg(nonblocking.clone());
 
         let mut app = Command::new(crate_name!())
             .version(crate_version!())
@@ -370,6 +389,7 @@ impl Config {
             .subcommand(record)
             .subcommand(top)
             .subcommand(dump)
+            .subcommand(proc)
             .subcommand(completions);
         let matches = app.clone().try_get_matches_from(args)?;
         info!("Command line args: {:?}", matches);
@@ -417,6 +437,9 @@ impl Config {
                 {
                     config.core_filename = matches.value_of("core").map(|f| f.to_owned());
                 }
+            }
+            "proc" => {
+                config.dump_json = matches.occurrences_of("json") > 0;
             }
             "completions" => {
                 let shell = matches.get_one::<clap_complete::Shell>("shell").unwrap();

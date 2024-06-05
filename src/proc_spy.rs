@@ -32,11 +32,7 @@ impl ProcSpy {
         let _lock = process.lock();
 
         #[cfg(unwind)]
-        let native = if config.native {
-            Some(NativeStack::new(pid, None, None)?)
-        } else {
-            None
-        };
+        let native = Some(NativeStack::new(pid, None, None)?);
 
         Ok(ProcSpy {
             pid,
@@ -84,6 +80,14 @@ impl ProcSpy {
 
     #[cfg(unwind)]
     pub fn get_stack_traces(&mut self) -> Result<Vec<StackTrace>, Error> {
+        use crate::config::LockingStrategy;
+
+        let _lock = if self.config.blocking == LockingStrategy::Lock {
+            Some(self.process.lock().context("Failed to suspend process")?)
+        } else {
+            None
+        };
+
         let mut traces = Vec::new();
 
         if let Some(native) = self.native.as_mut() {
