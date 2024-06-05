@@ -17,8 +17,6 @@ pub struct ProcSpy {
     #[cfg(unwind)]
     pub native: Option<NativeStack>,
     pub short_filenames: HashMap<String, Option<String>>,
-    #[cfg(target_os = "linux")]
-    pub dockerized: bool,
 }
 
 impl ProcSpy {
@@ -45,8 +43,6 @@ impl ProcSpy {
             process,
             #[cfg(unwind)]
             native,
-            #[cfg(target_os = "linux")]
-            dockerized: python_info.dockerized,
             config: config.clone(),
             short_filenames: HashMap::new(),
         })
