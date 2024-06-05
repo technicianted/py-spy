@@ -15,6 +15,7 @@ mod dump;
 mod flamegraph;
 #[cfg(unwind)]
 mod native_stack_trace;
+mod proc_spy;
 mod python_bindings;
 mod python_data_access;
 mod python_interpreters;
@@ -373,6 +374,9 @@ fn run_spy_command(pid: remoteprocess::Pid, config: &config::Config) -> Result<(
     match config.command.as_ref() {
         "dump" => {
             dump::print_traces(pid, config, None)?;
+        }
+        "proc" => {
+            proc_spy::print_traces(pid, config, None)?;
         }
         "record" => {
             record_samples(pid, config)?;
