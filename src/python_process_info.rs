@@ -442,7 +442,7 @@ where
         // stack traces -- but retrying is often sufficient to resolve this.
         // This can avoid segfaults down the line as we avoid checking the binary for interpreter
         // information.
-        let repeats = if addrs.len() == 1 { 1 } else { 1 };
+        let repeats = if addrs.len() == 1 { 5 } else { 1 };
         let mut seen_addr = std::collections::HashSet::new();
         for &addr in addrs {
             if seen_addr.contains(&addr) {
