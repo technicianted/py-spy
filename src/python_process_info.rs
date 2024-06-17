@@ -443,14 +443,24 @@ where
         // This can avoid segfaults down the line as we avoid checking the binary for interpreter
         // information.
         let repeats = if addrs.len() == 1 { 5 } else { 1 };
+        let mut seen_addr = std::collections::HashSet::new();
         for &addr in addrs {
+            if seen_addr.contains(&addr) {
+                continue;
+            }
+            seen_addr.insert(addr);
             if maps.contains_addr(addr) {
                 // this address points to valid memory. try loading it up as a PyInterpreterState
                 // to further check
-                let interp: I = match process.copy_struct(addr) {
-                    Ok(interp) => interp,
-                    Err(_) => continue,
-                };
+
+                // This is equivalent to `process.copy_struct::<I>(addr)`
+                // -- but for some reason, this doesn't segfault, while the other sometimes does.
+                let mut data = vec![0; std::mem::size_of::<I>()];
+                if let Err(e) = process.read(addr, &mut data) {
+                    log::warn!("Failed to read memory at {:016x}: {}", addr, e);
+                    continue;
+                }
+                let interp: I = unsafe { std::ptr::read(data.as_ptr() as *const _) };
 
                 // get the pythreadstate pointer from the interpreter object, and if it is also
                 // a valid pointer then load it up.
