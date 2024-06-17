@@ -418,9 +418,6 @@ impl Config {
                     config.core_filename = matches.value_of("core").map(|f| f.to_owned());
                 }
             }
-            "proc" => {
-                config.dump_json = matches.occurrences_of("json") > 0;
-            }
             "completions" => {
                 let shell = matches.get_one::<clap_complete::Shell>("shell").unwrap();
                 let app_name = app.get_name().to_string();
