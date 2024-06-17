@@ -437,6 +437,12 @@ where
         I: InterpreterState,
         P: ProcessMemory,
     {
+        // If we're running on a live process, we should have a python info here.
+        // In this case, we can sometimes run into spurious problems when trying to load the
+        // stack traces -- but retrying is often sufficient to resolve this.
+        // This can avoid segfaults down the line as we avoid checking the binary for interpreter
+        // information.
+        let repeats = if addrs.len() == 1 { 5 } else { 1 };
         for &addr in addrs {
             if maps.contains_addr(addr) {
                 // this address points to valid memory. try loading it up as a PyInterpreterState
@@ -458,10 +464,20 @@ where
                     };
 
                     // as a final sanity check, try getting the stack_traces, and only return if this works
-                    if thread.interp() as usize == addr
-                        && get_stack_traces(&interp, process, 0, None).is_ok()
-                    {
-                        return Ok(addr);
+                    if thread.interp() as usize == addr {
+                        let mut stack_traces = get_stack_traces(&interp, process, 0, None);
+                        for _ in 0..repeats {
+                            if stack_traces.is_ok() {
+                                return Ok(addr);
+                            }
+                            stack_traces = get_stack_traces(&interp, process, 0, None);
+                        }
+
+                        if let Err(_) = stack_traces {
+                            return Err(format_err!(
+                                "Failed to find a python interpreter in the .data section (getting stack traces failed)"
+                            ));
+                        }
                     }
                 }
             }
