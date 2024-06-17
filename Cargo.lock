@@ -1062,7 +1062,7 @@ dependencies = [
 
 [[package]]
 name = "py-spy"
-version = "0.3.14"
+version = "0.3.15+custom3"
 dependencies = [
  "anyhow",
  "chrono",
