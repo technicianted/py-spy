@@ -564,10 +564,16 @@ impl PythonSpy {
         while let Some(_) = cursor.next() {
             // the pthread_id is usually in the top-level frame of the thread, but on some configs
             // can be 2nd level. Handle this by taking the top-most rbx value that is one of the
-            // pthread_ids we're looking for
-            if let Ok(bx) = cursor.bx() {
-                if bx != 0 && threadids.contains(&bx) {
-                    pthread_id = bx;
+            // pthread_ids we're looking for. for arm based arch, it is in r5.
+            #[cfg(target_arch = "x86_64")]
+            let thread_reg = cursor.bx();
+            #[cfg(target_arch = "arm")]
+            let thread_reg = cursor.r5();
+            #[cfg(target_arch = "aarch64")]
+            let thread_reg = cursor.r5();
+            if let Ok(thread_id) = thread_reg {
+                if thread_id != 0 && threadids.contains(&thread_id) {
+                    pthread_id = thread_id;
                 }
             }
         }
