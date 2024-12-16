@@ -55,66 +55,57 @@ impl PythonSpy {
         #[cfg(target_os = "freebsd")]
         let _lock = process.lock();
 
-        let (
-            version,
-            interpreter_address,
-            threadstate_address,
-            version_string,
-            python_binary,
-            libpython_binary,
-        ) = match get_python_version(&python_info, &process) {
-            Ok(version) => {
-                info!("python version {} detected", version);
+        #[allow(unused_variables)]
+        let (version, interpreter_address, threadstate_address, python_binary, libpython_binary) =
+            match get_python_version(&python_info, &process) {
+                Ok(version) => {
+                    info!("python version {} detected", version);
 
-                let interpreter_address =
-                    get_interpreter_address(&python_info, &process, &version)?;
-                info!("Found interpreter at 0x{:016x}", interpreter_address);
+                    let interpreter_address =
+                        get_interpreter_address(&python_info, &process, &version)?;
+                    info!("Found interpreter at 0x{:016x}", interpreter_address);
 
-                // lets us figure out which thread has the GIL
-                let threadstate_address =
-            get_threadstate_address(interpreter_address, &python_info, &version, config)?;
+                    // lets us figure out which thread has the GIL
+                    let threadstate_address = get_threadstate_address(
+                        interpreter_address,
+                        &python_info,
+                        &version,
+                        config,
+                    )?;
 
-                let version_string = format!("python{}.{}", version.major, version.minor);
-
-                (
-                    version,
-                    interpreter_address,
-                    threadstate_address,
-                    version_string,
-                    python_info.python_binary,
-                    python_info.libpython_binary,
-                )
-            }
-            Err(e) => {
-                #[cfg(unwind)]
-                let is_native_all = config.native_all;
-
-                #[cfg(not(unwind))]
-                let is_native_all = false;
-
-                if is_native_all {
                     (
-                        Version {
-                            // magic native only version number
-                            major: 1,
-                            minor: 3,
-                            patch: 37,
-                            release_flags: "".to_string(),
-                            build_metadata: None,
-                        },
-                        0,
-                        0,
-                        "unknown".to_string(),
-                        None,
-                        None,
+                        version,
+                        interpreter_address,
+                        threadstate_address,
+                        python_info.python_binary,
+                        python_info.libpython_binary,
                     )
-                } else {
-                    return Err(e);
                 }
-            }
-        };
+                Err(e) => {
+                    let is_native_all = config.native_all;
 
-        #[cfg(unwind)]
+                    if is_native_all {
+                        (
+                            Version {
+                                // magic native only version number
+                                major: 1,
+                                minor: 3,
+                                patch: 37,
+                                release_flags: "".to_string(),
+                                build_metadata: None,
+                            },
+                            0,
+                            0,
+                            None,
+                            None,
+                        )
+                    } else {
+                        return Err(e);
+                    }
+                }
+            };
+
+        #[cfg(feature = "unwind")]
         let native = if config.native {
             Some(NativeStack::new(pid, python_binary, libpython_binary)?)
         } else {
@@ -167,6 +158,7 @@ impl PythonSpy {
 
     /// Gets a StackTrace for each thread in the current process
     pub fn get_stack_traces(&mut self) -> Result<Vec<StackTrace>, Error> {
+        #[allow(unused_mut)]
         let mut traces = match self.version {
             // ABI for 2.3/2.4/2.5/2.6/2.7 is compatible for our purpose
             Version {
@@ -238,7 +230,7 @@ impl PythonSpy {
             )),
         }?;
 
-        #[cfg(unwind)]
+        #[cfg(feature = "unwind")]
         if self.config.native_all {
             if let Some(native) = self.native.as_mut() {
                 let _lock = if self.config.blocking == LockingStrategy::Lock {

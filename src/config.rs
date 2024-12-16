@@ -169,7 +169,6 @@ impl Config {
             .long("native")
             .help("Collect stack traces from native extensions written in Cython, C or C++");
 
-        #[cfg(unwind)]
         let mut native_all = Arg::new("native-all")
             .short('N')
             .long("native-all")
@@ -346,11 +345,8 @@ impl Config {
         let top = top.arg(native.clone());
         let dump = dump.arg(native.clone());
 
-        #[cfg(unwind)]
         let record = record.arg(native_all.clone());
-        #[cfg(unwind)]
         let top = top.arg(native_all.clone());
-        #[cfg(unwind)]
         let dump = dump.arg(native_all.clone());
 
         // Nonblocking isn't an option for freebsd, remove
