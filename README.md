@@ -9,7 +9,7 @@ py-spy is extremely low overhead: it is written in Rust for speed and doesn't ru
 in the same process as the profiled Python program. This means py-spy is safe to use against production Python code.
 
 py-spy works on Linux, OSX, Windows and FreeBSD, and supports profiling all recent versions of the CPython
-interpreter (versions 2.3-2.7 and 3.3-3.11).
+interpreter (versions 2.3-2.7 and 3.3-3.13).
 
 ## Installation
 
@@ -22,7 +22,9 @@ pip install py-spy
 You can also download prebuilt binaries from the [GitHub Releases
 Page](https://github.com/benfred/py-spy/releases).
 
-If you're a Rust user, py-spy can also be installed with: ```cargo install py-spy```.
+If you're a Rust user, py-spy can also be installed with: ```cargo install py-spy```. Note this
+builds py-spy from source and requires `libunwind` on Linux and Window, e.g., 
+`apt install libunwind-dev`.
 
 On macOS, [py-spy is in Homebrew](https://formulae.brew.sh/formula/py-spy#default) and 
 can be installed with ```brew install py-spy```.
