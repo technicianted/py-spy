@@ -1196,7 +1196,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "remoteprocess"
 version = "0.5.0"
-source = "git+https://github.com/krfricke/remoteprocess.git?tag=0.5.0-custom0#15f1d1cfb7731278d1ebd4535679ab90b5dfad25"
+source = "git+https://github.com/technicianted/remoteprocess.git?rev=72505594a19d80c07df6f1dc4a80556b7e462148#72505594a19d80c07df6f1dc4a80556b7e462148"
 dependencies = [
  "addr2line",
  "cfg-if",
